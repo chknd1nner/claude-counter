@@ -307,29 +307,23 @@
 		return parts.join('\n');
 	}
 
-	function hashFNV1a(str) {
-		let hash = 0x811c9dc5;
-		for (let i = 0; i < str.length; i++) {
-			hash ^= str.charCodeAt(i);
-			hash = Math.imul(hash, 0x01000193);
-		}
-		return (hash >>> 0).toString(16).padStart(8, '0');
-	}
-
 	async function hashString(str) {
-		if (crypto?.subtle?.digest) {
+		if (!crypto?.subtle?.digest) return null;
+		try {
 			const data = new TextEncoder().encode(str);
 			const buffer = await crypto.subtle.digest('SHA-256', data);
 			const bytes = new Uint8Array(buffer);
 			// Use first 8 bytes (64 bits) for fingerprint
 			return Array.from(bytes.slice(0, 8), (b) => b.toString(16).padStart(2, '0')).join('');
+		} catch {
+			return null;
 		}
-		return hashFNV1a(str);
 	}
 
 	async function fingerprint(text) {
-		if (!text) return '0';
+		if (!text) return null;
 		const hash = await hashString(text);
+		if (!hash) return null;
 		return `${text.length}:${hash}`;
 	}
 
@@ -340,6 +334,7 @@
 
 		async getMessageTokens(messageId, messageText) {
 			const fp = await fingerprint(messageText);
+			if (!fp) return countTokens(messageText);
 			const cached = this._byMessageId.get(messageId);
 			if (cached && cached.fp === fp) return cached.tokens;
 

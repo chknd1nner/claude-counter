@@ -80,6 +80,10 @@
 		async requestConversation(orgId, conversationId) {
 			return this.request('conversation', { orgId, conversationId }, { timeoutMs: 20000 });
 		}
+
+		async requestHash(text) {
+			return this.request('hash', { text }, { timeoutMs: 5000 });
+		}
 	}
 
 	let bridgeReadyPromise = null;

@@ -135,6 +135,19 @@
 
 		const { requestId, kind, payload } = data;
 		try {
+			if (kind === 'hash') {
+				const text = typeof payload?.text === 'string' ? payload.text : '';
+				if (!text || !crypto?.subtle?.digest) {
+					postResponse(requestId, false, null, 'Hash unavailable');
+					return;
+				}
+				const buffer = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+				const bytes = new Uint8Array(buffer);
+				const hash = Array.from(bytes.slice(0, 8), (b) => b.toString(16).padStart(2, '0')).join('');
+				postResponse(requestId, true, { hash }, null);
+				return;
+			}
+
 			if (kind === 'usage') {
 				const orgId = payload?.orgId;
 				if (!orgId) throw new Error('Missing orgId');
