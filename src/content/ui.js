@@ -318,10 +318,15 @@
 			if (!this.usageLine) return;
 			const modelSelector = document.querySelector(CC.DOM.MODEL_SELECTOR_DROPDOWN);
 			if (!modelSelector) return;
-			const selectorLine = modelSelector.parentElement?.parentElement;
-			if (!selectorLine) return;
-			if (selectorLine.nextElementSibling !== this.usageLine) {
-				selectorLine.after(this.usageLine);
+
+			// We need to inject AFTER the toolbar, not inside it.
+			// Toolbar structure: Toolbar(flex) > div > div > Button(active)
+			const toolbar = modelSelector.closest('.relative.flex.gap-2.w-full.items-center') || 
+			                modelSelector.parentElement?.parentElement?.parentElement;
+
+			if (!toolbar) return;
+			if (toolbar.nextElementSibling !== this.usageLine) {
+				toolbar.after(this.usageLine);
 			}
 			this.refreshProgressChrome();
 		}
