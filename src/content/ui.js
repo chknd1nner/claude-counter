@@ -318,10 +318,31 @@
 			if (!this.usageLine) return;
 			const modelSelector = document.querySelector(CC.DOM.MODEL_SELECTOR_DROPDOWN);
 			if (!modelSelector) return;
-			const selectorLine = modelSelector.parentElement?.parentElement;
-			if (!selectorLine) return;
-			if (selectorLine.nextElementSibling !== this.usageLine) {
-				selectorLine.after(this.usageLine);
+			const gridContainer = modelSelector.closest('[data-testid="chat-input-grid-container"]');
+			const gridArea = modelSelector.closest('[data-testid="chat-input-grid-area"]');
+			const findToolbarRow = (el, stopAt) => {
+				let cur = el;
+				while (cur && cur !== document.body) {
+					if (stopAt && cur === stopAt) break;
+					if (cur !== el && cur.nodeType === 1) {
+						const style = window.getComputedStyle(cur);
+						if (style.display === 'flex' && style.flexDirection === 'row') {
+							const buttons = cur.querySelectorAll('button').length;
+							if (buttons > 1) return cur;
+						}
+					}
+					cur = cur.parentElement;
+				}
+				return null;
+			};
+
+			const toolbarRow =
+				(gridContainer ? findToolbarRow(modelSelector, gridArea || gridContainer) : null) ||
+				findToolbarRow(modelSelector) ||
+				modelSelector.parentElement?.parentElement?.parentElement;
+			if (!toolbarRow) return;
+			if (toolbarRow.nextElementSibling !== this.usageLine) {
+				toolbarRow.after(this.usageLine);
 			}
 			this.refreshProgressChrome();
 		}
